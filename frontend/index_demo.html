@@ -1,1 +1,127 @@
 
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>東億毛巾 智慧能效 Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; margin: 0; padding: 1rem; background-color: #f4f4f4; color: #333; }
+    .container { max-width: 1200px; margin: auto; background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.08); }
+    h2 { border-left: 6px solid #0077b6; padding-left: 10px; color: #0077b6; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    .card { border: 1px solid #ccc; padding: 1rem; border-radius: 8px; background-color: #fafafa; }
+    .label { font-weight: bold; margin-right: 8px; color: #555; }
+    .value { color: #000; }
+    canvas { width: 100% !important; height: auto !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 東億毛巾 智慧能效模擬 Dashboard</h1>
+
+    <!-- 第一段 -->
+    <section>
+      <h2>📊 總排碳統計</h2>
+      <p><span class="label">總碳排量（當前）：</span><span id="total_emission" class="value">--</span> gCO₂</p>
+      <p><span class="label">總能耗（當前）：</span><span id="total_power" class="value">--</span> Wh</p>
+    </section>
+
+    <!-- 第二段 -->
+    <section>
+      <h2>📦 機台運作狀態</h2>
+      <div class="grid" id="deviceGrid"></div>
+    </section>
+
+    <!-- 第三段 -->
+    <section>
+      <h2>📉 能耗與碳排比較圖</h2>
+      <canvas id="barChart"></canvas>
+    </section>
+  </div>
+
+  <script>
+    const apiBase = "https://atsave-sbir-demo-production.up.railway.app";
+
+    async function loadData() {
+      const res = await fetch(apiBase + "/latest");
+      const data = await res.json();
+
+      let totalEmission = 0, totalPower = 0;
+      let labels = [], emissions = [], powers = [];
+
+      const grid = document.getElementById("deviceGrid");
+      grid.innerHTML = "";
+
+      data.forEach(d => {
+        totalEmission += d.emission;
+        totalPower += d.power;
+        labels.push(d.device_id);
+        emissions.push(d.emission);
+        powers.push(d.power);
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>🛠 ${mapDevice(d.device_id)}</h3>
+          <p><span class="label">可用率：</span>${d.availability}%</p>
+          <p><span class="label">良率：</span>${d.quality}%</p>
+          <p><span class="label">達成率：</span>${d.performance}%</p>
+          <p><span class="label">單件耗電：</span>${d.power} Wh</p>
+          <p><span class="label">單件碳排：</span>${d.emission} gCO₂</p>
+        `;
+        grid.appendChild(card);
+      });
+
+      document.getElementById("total_emission").innerText = totalEmission.toFixed(1);
+      document.getElementById("total_power").innerText = totalPower.toFixed(1);
+
+      drawChart(labels, powers, emissions);
+    }
+
+    function mapDevice(id) {
+      return {
+        device01: "毛巾織機",
+        device02: "剖布機",
+        device03: "車邊機",
+        device04: "剪頭機",
+        device05: "摺頭機"
+      }[id] || id;
+    }
+
+    function drawChart(labels, power, emission) {
+      const ctx = document.getElementById("barChart").getContext("2d");
+      if (window.barInstance) window.barInstance.destroy();
+
+      window.barInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels.map(mapDevice),
+          datasets: [
+            {
+              label: "耗電量 (Wh)",
+              data: power,
+              backgroundColor: "rgba(54, 162, 235, 0.7)"
+            },
+            {
+              label: "碳排量 (gCO₂)",
+              data: emission,
+              backgroundColor: "rgba(255, 99, 132, 0.7)"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    loadData();
+    setInterval(loadData, 60000);
+  </script>
+</body>
+</html>
