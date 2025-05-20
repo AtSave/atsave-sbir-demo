@@ -1,1 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>歷史能效查詢 - 東億毛巾</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; padding: 2rem; background: #f0f0f0; color: #333; }
+    section { background: #fff; padding: 1.5rem; margin-bottom: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { color: #0077b6; }
+    label { margin-right: 0.5rem; }
+    table { border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.5rem; text-align: center; }
+    th { background: #0077b6; color: white; }
+  </style>
+</head>
+<body>
+  <h1>📚 東億毛巾 - 歷史能效查詢</h1>
+
+  <!-- 第一段：條件選擇 -->
+  <section>
+    <h2>📅 歷史資料查詢條件</h2>
+    <label for="device">選擇機台：</label>
+    <select id="device">
+      <option value="device01">毛巾織機</option>
+      <option value="device02">剖布機</option>
+      <option value="device03">車邊機</option>
+      <option value="device04">剪頭機</option>
+      <option value="device05">摺頭機</option>
+    </select>
+    <label for="start">起始日期：</label>
+    <input type="date" id="start" value="2025-05-05" />
+    <label for="end">結束日期：</label>
+    <input type="date" id="end" value="2025-05-10" />
+    <button onclick="fetchHistory()">查詢</button>
+  </section>
+
+  <!-- 第二段：歷史表格 -->
+  <section>
+    <h2>📋 歷史紀錄表</h2>
+    <table border="1" width="100%" id="historyTable">
+      <thead>
+        <tr>
+          <th>時間</th>
+          <th>可用率 (%)</th>
+          <th>良率 (%)</th>
+          <th>達成率 (%)</th>
+          <th>耗電 (Wh)</th>
+          <th>碳排 (gCO₂)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- 第三段：圖表比較 -->
+  <section>
+    <h2>📈 歷史趨勢圖</h2>
+    <canvas id="trendChart"></canvas>
+  </section>
+
+  <script>
+    const apiBase = "https://atsave-sbir-demo-production.up.railway.app";
+
+    async function fetchHistory() {
+      const device = document.getElementById("device").value;
+      const start = document.getElementById("start").value;
+      const end = document.getElementById("end").value;
+
+      const res = await fetch(`${apiBase}/query-logs?device_id=${device}&start=${start}&end=${end}`);
+      const data = await res.json();
+
+      const tbody = document.querySelector("#historyTable tbody");
+      tbody.innerHTML = "";
+
+      const labels = [], emissions = [], powers = [];
+
+      data.forEach(d => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${d.timestamp.split("T")[0]} ${d.timestamp.split("T")[1].substring(0,5)}</td>
+          <td>${d.availability}</td>
+          <td>${d.quality}</td>
+          <td>${d.performance}</td>
+          <td>${d.power}</td>
+          <td>${d.emission}</td>
+        `;
+        tbody.appendChild(tr);
+        labels.push(d.timestamp.split("T")[1].substring(0,5));
+        emissions.push(d.emission);
+        powers.push(d.power);
+      });
+
+      drawTrendChart(labels, powers, emissions);
+    }
+
+    function drawTrendChart(labels, power, emission) {
+      const ctx = document.getElementById("trendChart").getContext("2d");
+      if (window.historyChart) window.historyChart.destroy();
+
+      window.historyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '耗電量 (Wh)',
+              data: power,
+              borderColor: 'rgba(54, 162, 235, 1)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              fill: true
+            },
+            {
+              label: '碳排量 (gCO₂)',
+              data: emission,
+              borderColor: 'rgba(255, 99, 132, 1)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
 
