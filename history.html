@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>東億毛巾 歷史能效查詢</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; background: #f8f8f8; padding: 2rem; }
+    .container { max-width: 1000px; margin: auto; background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.08); }
+    h1, h2 { color: #0077b6; }
+    label { margin-right: 0.5rem; font-weight: bold; }
+    input, select, button { margin: 0.5rem 0.8rem 0.5rem 0; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; }
+    button { background-color: #0077b6; color: white; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: center; }
+    th { background-color: #0077b6; color: white; }
+    canvas { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📚 東億毛巾 - 歷史能效查詢</h1>
+
+    <!-- 🔹 查詢條件區 -->
+    <section>
+      <h2>📅 查詢條件</h2>
+      <label for="device">機台：</label>
+      <select id="device">
+        <option value="device01">毛巾織機</option>
+        <option value="device02">剖布機</option>
+        <option value="device03">車邊機</option>
+        <option value="device04">剪頭機</option>
+        <option value="device05">摺頭機</option>
+      </select>
+      <label for="start">開始日期：</label>
+      <input type="date" id="start" value="2025-05-05">
+      <label for="end">結束日期：</label>
+      <input type="date" id="end" value="2025-05-10">
+      <button onclick="fetchLogs()">查詢</button>
+    </section>
+
+    <!-- 🔹 表格顯示區 -->
+    <section>
+      <h2>📋 數據紀錄表</h2>
+      <table id="logTable">
+        <thead>
+          <tr>
+            <th>時間</th>
+            <th>可用率</th>
+            <th>良率</th>
+            <th>達成率</th>
+            <th>耗電 (Wh)</th>
+            <th>碳排 (gCO₂)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- 🔹 圖表區 -->
+    <section>
+      <h2>📈 能耗與碳排趨勢圖</h2>
+      <canvas id="trendChart"></canvas>
+    </section>
+  </div>
+<script>
+const apiBase = "https://atsave-sbir-demo-production.up.railway.app";
+
+async function fetchLogs() {
+  const deviceId = document.getElementById("device").value;
+  const start = document.getElementById("start").value;
+  const end = document.getElementById("end").value;
+
+  const res = await fetch(`${apiBase}/query-logs?device_id=${deviceId}&start=${start}&end=${end}`);
+  const data = await res.json();
+
+  const tbody = document.querySelector("#logTable tbody");
+  tbody.innerHTML = "";
+
+  const timeLabels = [], emissions = [], powers = [];
+
+  data.forEach(d => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${formatTime(d.timestamp)}</td>
+      <td>${d.availability}</td>
+      <td>${d.quality}</td>
+      <td>${d.performance}</td>
+      <td>${d.power}</td>
+      <td>${d.emission}</td>
+    `;
+    tbody.appendChild(row);
+
+    timeLabels.push(formatTime(d.timestamp, true));
+    emissions.push(d.emission);
+    powers.push(d.power);
+  });
+
+  drawChart(timeLabels, powers, emissions);
+}
+
+function formatTime(timestamp, short=false) {
+  const d = new Date(timestamp);
+  const date = d.toISOString().split("T")[0];
+  const time = d.toTimeString().split(" ")[0].slice(0,5);
+  return short ? time : `${date} ${time}`;
+}
+
+function drawChart(labels, powers, emissions) {
+  const ctx = document.getElementById("trendChart").getContext("2d");
+  if (window.chartInstance) window.chartInstance.destroy();
+
+  window.chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '耗電量 (Wh)',
+          data: powers,
+          borderColor: 'rgba(54,162,235,1)',
+          backgroundColor: 'rgba(54,162,235,0.2)',
+          fill: true
+        },
+        {
+          label: '碳排量 (gCO₂)',
+          data: emissions,
+          borderColor: 'rgba(255,99,132,1)',
+          backgroundColor: 'rgba(255,99,132,0.2)',
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
