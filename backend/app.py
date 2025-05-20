@@ -54,3 +54,7 @@ def summary_by_date():
 @app.route("/")
 def home():
     return "SBIR API is running"
+
+# ✅ Railway 專案執行 Flask 所需的入口點
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
