@@ -7,6 +7,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 app = Flask(__name__)
+CORS(app)  # ✅ 允許跨來源請求
 
 headers = {
     "apikey": SUPABASE_KEY,
