@@ -8,16 +8,24 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <!-- 🔄 電力排碳係數浮動角 -->
+  <div style="position:fixed; top:10px; right:20px; font-size:0.85rem; background:#eef; padding:6px 12px; border-radius:6px;">
+    🔄 電力排碳係數：0.474 kg CO₂e/kWh（更新日期：114/4/14）
+  </div>
+
   <div class="container">
     <h1>🌿 東億毛巾有限公司 智慧能效平台</h1>
     <p>本平台結合設備監控、碳排計算與 ESG 報表功能，提供五台毛巾生產核心製程設備之即時能效數據。<br/>
     同時支援歷史數據查詢與能耗優化分析，協助工廠數位轉型與碳管理。</p>
 
+    <!-- 🕒 現在時間 -->
+    <p style="text-align:right;">🕒 現在時間：<span id="nowTime">--:--:--</span></p>
+
     <div style="text-align:right; margin-bottom:1rem;">
       <button onclick="location.href='history.html'">📋 查詢歷史資料</button>
     </div>
 
-    <!-- 概況統計 -->
+    <!-- 📊 總統計 -->
     <section>
       <h2>📊 今日碳排與能耗統計</h2>
       <p><span class="label">總碳排量：</span><span id="total_emission">--</span> gCO₂</p>
@@ -25,116 +33,121 @@
       <p><span class="label">AI 建議：</span><span id="ai_tip">--</span></p>
     </section>
 
-    <!-- 設備狀態區塊 -->
+    <!-- 📦 即時設備狀態 -->
     <section>
       <h2>📦 即時設備狀態</h2>
       <div class="grid" id="deviceGrid"></div>
     </section>
 
-    <!-- 圖表視覺區 -->
+    <!-- 📈 圖表 -->
     <section>
       <h2>📈 能耗與碳排比較圖</h2>
       <canvas id="barChart"></canvas>
     </section>
   </div>
+<script>
+  const apiBase = "https://atsave-sbir-demo-production.up.railway.app";
 
-  <script>
-    const apiBase = "https://atsave-sbir-demo-production.up.railway.app";
+  async function loadData() {
+    const res = await fetch(apiBase + "/latest");
+    const data = await res.json();
 
-    async function loadData() {
-      const res = await fetch(apiBase + "/latest");
-      const data = await res.json();
+    let totalEmission = 0, totalPower = 0;
+    const grid = document.getElementById("deviceGrid");
+    grid.innerHTML = "";
 
-      let totalEmission = 0, totalPower = 0;
-      const grid = document.getElementById("deviceGrid");
-      grid.innerHTML = "";
+    const labels = [], powers = [], emissions = [];
+    const now = new Date();
 
-      const labels = [], powers = [], emissions = [];
+    data.forEach(d => {
+      const lastUpdate = new Date(d.timestamp);
+      const diffMins = Math.floor((now - lastUpdate) / 60000);
+      const isOnline = diffMins < 1;
+      const statusHTML = isOnline
+        ? '<span style="color:green;">🟢 上線</span>'
+        : `<span style="color:red;">🔴 離線（${diffMins} 分鐘前）</span>`;
 
-      const now = new Date();
+      totalEmission += d.emission;
+      totalPower += d.power;
+      labels.push(d.device_id);
+      powers.push(d.power);
+      emissions.push(d.emission);
 
-      data.forEach(d => {
-        totalEmission += d.emission;
-        totalPower += d.power;
-        labels.push(d.device_id);
-        powers.push(d.power);
-        emissions.push(d.emission);
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <h3>🛠 ${mapDevice(d.device_id)} ${statusHTML}</h3>
+        <p><span class="label">最後更新：</span>${lastUpdate.toLocaleTimeString()}</p>
+        <p><span class="label">可用率：</span>${d.availability}%</p>
+        <p><span class="label">良率：</span>${d.quality}%</p>
+        <p><span class="label">達成率：</span>${d.performance}%</p>
+        <p><span class="label">單件耗電：</span>${d.power} Wh</p>
+        <p><span class="label">單件碳排：</span>${d.emission} gCO₂</p>
+      `;
+      grid.appendChild(card);
+    });
 
-        const lastUpdate = new Date(d.timestamp);
-        const isOnline = (now - lastUpdate) < 60000;
-        const statusHTML = isOnline
-          ? '<span style="color:green;">🟢 上線</span>'
-          : '<span style="color:red;">🔴 離線</span>';
+    document.getElementById("total_emission").innerText = totalEmission.toFixed(1);
+    document.getElementById("total_power").innerText = totalPower.toFixed(1);
+    document.getElementById("ai_tip").innerText = getAiSuggestion(totalEmission);
 
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <h3>🛠 ${mapDevice(d.device_id)} ${statusHTML}</h3>
-          <p><span class="label">最後更新：</span>${lastUpdate.toLocaleTimeString()}</p>
-          <p><span class="label">可用率：</span>${d.availability}%</p>
-          <p><span class="label">良率：</span>${d.quality}%</p>
-          <p><span class="label">達成率：</span>${d.performance}%</p>
-          <p><span class="label">單件耗電：</span>${d.power} Wh</p>
-          <p><span class="label">單件碳排：</span>${d.emission} gCO₂</p>
-        `;
-        grid.appendChild(card);
-      });
+    drawChart(labels.map(mapDevice), powers, emissions);
+  }
 
-      document.getElementById("total_emission").innerText = totalEmission.toFixed(1);
-      document.getElementById("total_power").innerText = totalPower.toFixed(1);
-      document.getElementById("ai_tip").innerText = getAiSuggestion(totalEmission);
+  function mapDevice(id) {
+    return {
+      device01: "毛巾織機",
+      device02: "剖布機",
+      device03: "車邊機",
+      device04: "剪頭機",
+      device05: "摺頭機"
+    }[id] || id;
+  }
 
-      drawChart(labels.map(mapDevice), powers, emissions);
-    }
+  function getAiSuggestion(totalCarbon) {
+    if (totalCarbon > 375) return "碳排偏高，建議檢查高能耗工序並調整參數。";
+    if (totalCarbon > 320) return "碳排量略高，可評估維護週期與功率設定。";
+    return "目前碳排水準合理，建議維持現有節能參數。";
+  }
 
-    function mapDevice(id) {
-      return {
-        device01: "第一流程、毛巾織機",
-        device02: "第二流程、剖布機",
-        device03: "第三流程、車邊機",
-        device04: "第四流程、剪頭機",
-        device05: "第五流程、摺頭機"
-      }[id] || id;
-    }
+  function drawChart(labels, powers, emissions) {
+    const ctx = document.getElementById("barChart").getContext("2d");
+    if (window.barInstance) window.barInstance.destroy();
 
-    function getAiSuggestion(totalCarbon) {
-      if (totalCarbon > 375) return "碳排偏高，建議檢查高能耗工序並調整參數。";
-      if (totalCarbon > 320) return "碳排量略高，可評估維護週期與功率設定。";
-      return "目前碳排水準合理，建議維持現有節能參數。";
-    }
-
-    function drawChart(labels, powers, emissions) {
-      const ctx = document.getElementById("barChart").getContext("2d");
-      if (window.barInstance) window.barInstance.destroy();
-
-      window.barInstance = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "耗電量 (Wh)",
-              data: powers,
-              backgroundColor: "rgba(54, 162, 235, 0.7)"
-            },
-            {
-              label: "碳排量 (gCO₂)",
-              data: emissions,
-              backgroundColor: "rgba(255, 99, 132, 0.7)"
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true }
+    window.barInstance = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "耗電量 (Wh)",
+            data: powers,
+            backgroundColor: "rgba(54, 162, 235, 0.7)"
+          },
+          {
+            label: "碳排量 (gCO₂)",
+            data: emissions,
+            backgroundColor: "rgba(255, 99, 132, 0.7)"
           }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
         }
-      });
-    }
+      }
+    });
+  }
 
-    loadData();
-    setInterval(loadData, 60000);
-  </script>
+  function updateNowTime() {
+    document.getElementById("nowTime").innerText = new Date().toLocaleTimeString();
+  }
+
+  loadData();
+  updateNowTime();
+  setInterval(loadData, 60000);
+  setInterval(updateNowTime, 1000);
+</script>
 </body>
 </html>
