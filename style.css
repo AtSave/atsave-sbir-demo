@@ -1,0 +1,103 @@
+/* 第一段：通用容器與版面配置 */
+body {
+  font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 2rem;
+  color: #333;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+  text-align: center;
+  color: #0077b6;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  border-left: 6px solid #0077b6;
+  padding-left: 10px;
+  color: #0077b6;
+  margin-top: 2rem;
+}
+
+label {
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+input, select, button {
+  padding: 6px 10px;
+  margin: 0.4rem 0.6rem 0.4rem 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+button {
+  background-color: #0077b6;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #005f8f;
+}
+/* 第二段：儀表卡片、表格與圖表樣式 */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+}
+
+.card, .device {
+  background-color: #fafafa;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.label {
+  font-weight: bold;
+  color: #555;
+}
+
+.value {
+  color: #000;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 0.6rem;
+  text-align: center;
+}
+
+th {
+  background-color: #0077b6;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+canvas {
+  width: 100% !important;
+  height: auto !important;
+  margin-top: 1.5rem;
+}
