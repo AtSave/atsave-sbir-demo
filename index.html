@@ -51,6 +51,8 @@
 
       const labels = [], powers = [], emissions = [];
 
+      const now = new Date();
+
       data.forEach(d => {
         totalEmission += d.emission;
         totalPower += d.power;
@@ -58,10 +60,17 @@
         powers.push(d.power);
         emissions.push(d.emission);
 
+        const lastUpdate = new Date(d.timestamp);
+        const isOnline = (now - lastUpdate) < 60000;
+        const statusHTML = isOnline
+          ? '<span style="color:green;">🟢 上線</span>'
+          : '<span style="color:red;">🔴 離線</span>';
+
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
-          <h3>🛠 ${mapDevice(d.device_id)}</h3>
+          <h3>🛠 ${mapDevice(d.device_id)} ${statusHTML}</h3>
+          <p><span class="label">最後更新：</span>${lastUpdate.toLocaleTimeString()}</p>
           <p><span class="label">可用率：</span>${d.availability}%</p>
           <p><span class="label">良率：</span>${d.quality}%</p>
           <p><span class="label">達成率：</span>${d.performance}%</p>
