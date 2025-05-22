@@ -95,6 +95,23 @@
 
     <h1>📊 改善前後數據對比報告</h1>
 
+    <section>
+    <h2>📅 選擇改善區間</h2>
+   <div style="margin-bottom: 1rem;">
+    <label>改善前：</label>
+    <input type="date" id="before_start" value="2025-05-02">
+    ~
+    <input type="date" id="before_end" value="2025-05-15">
+    </div>
+    <div style="margin-bottom: 1rem;">
+    <label>改善後：</label>
+    <input type="date" id="after_start" value="2025-05-16">
+    ~
+    <input type="date" id="after_end" value="2025-05-20">
+    </div>
+    <button onclick="fetchCompare()">🔄 重新比較</button>
+    </section>
+
     <h2>📋 成效統計表</h2>
     <table>
       <thead>
@@ -182,5 +199,63 @@
       }
     });
   </script>
+  
+  <script>
+  async function fetchCompare() {
+  const beforeStart = document.getElementById("before_start").value;
+  const beforeEnd = document.getElementById("before_end").value;
+  const afterStart = document.getElementById("after_start").value;
+  const afterEnd = document.getElementById("after_end").value;
+
+  const devices = ["device01", "device02", "device03", "device04", "device05"];
+  const api = "https://atsave-sbir-demo-production.up.railway.app/query-logs";
+
+  async function fetchRange(start, end) {
+    const results = [];
+    for (const device of devices) {
+      const res = await fetch(`${api}?device_id=${device}&start=${start}&end=${end}`);
+      const data = await res.json();
+      results.push(...data);
+    }
+    return results;
+  }
+
+  const beforeData = await fetchRange(beforeStart, beforeEnd);
+  const afterData = await fetchRange(afterStart, afterEnd);
+
+  function calcAvg(data) {
+    const n = data.length;
+    const sum = (key) => data.reduce((acc, d) => acc + d[key], 0);
+    return {
+      emission: (sum("emission") / n).toFixed(1),
+      quality: (sum("quality") / n).toFixed(1),
+      performance: (sum("performance") / n).toFixed(1),
+      power: (sum("power") / n).toFixed(1),
+      cost: (sum("cost") / n).toFixed(2)
+    };
+  }
+
+  const b = calcAvg(beforeData);
+  const a = calcAvg(afterData);
+
+  updateCompareTable(b, a);
+}
+
+function updateCompareTable(b, a) {
+  const delta = (v1, v2) => {
+    const diff = (v1 - v2) / v1 * 100;
+    const icon = diff > 0 ? "⬇" : "⬆";
+    return `<span style="color:green;">${icon} ${Math.abs(diff).toFixed(1)}%</span>`;
+  };
+
+  document.querySelector("tbody").innerHTML = `
+    <tr><td>平均碳排量 (gCO₂)</td><td>${b.emission}</td><td>${a.emission}</td><td>${delta(b.emission, a.emission)}</td></tr>
+    <tr><td>平均良率 (%)</td><td>${b.quality}%</td><td>${a.quality}%</td><td>${delta(b.quality, a.quality)}</td></tr>
+    <tr><td>平均達成率 (%)</td><td>${b.performance}%</td><td>${a.performance}%</td><td>${delta(b.performance, a.performance)}</td></tr>
+    <tr><td>單件平均耗電 (Wh)</td><td>${b.power}</td><td>${a.power}</td><td>${delta(b.power, a.power)}</td></tr>
+    <tr><td>單件平均成本 (元)</td><td>${b.cost}</td><td>${a.cost}</td><td>${delta(b.cost, a.cost)}</td></tr>
+  `;
+}
+</script>
 </body>
 </html>
