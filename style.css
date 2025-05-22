@@ -30,6 +30,12 @@ h2 {
   margin-top: 2rem;
 }
 
+@media print {
+  button, .no-print { display: none; }
+  body { background: white; }
+  th { background-color: #0077b6 !important; color: white !important; }
+}
+
 /* ✅ 表單標籤與欄位 */
 label {
   font-weight: bold;
