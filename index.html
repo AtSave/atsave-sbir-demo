@@ -152,7 +152,15 @@
       `;
       grid.appendChild(card);
     });
+    
+    // 計算總筆數（假設每筆設備都是一筆資料）
+document.getElementById("record_count").innerText = data.length;
 
+// 取得最後一筆資料的 timestamp
+if (data.length > 0) {
+  const latest = new Date(Math.max(...data.map(d => new Date(d.timestamp))));
+  document.getElementById("last_update").innerText = latest.toLocaleTimeString();
+}
     document.getElementById("total_emission").innerText = totalEmission.toFixed(1);
     document.getElementById("total_power").innerText = totalPower.toFixed(1);
     document.getElementById("ai_tip").innerText = getAiSuggestion(totalEmission);
