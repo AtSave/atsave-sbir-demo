@@ -71,6 +71,15 @@
     <label for="carbonDate">更新日期（民國格式）：</label><br/>
     <input type="text" id="carbonDate" placeholder="如 114/4/14" />
   </section>
+  
+  <section>
+  <h2>📏 每台設備碳排上限設定 (gCO₂)</h2>
+  <p>毛巾織機 (device01)：<input type="number" id="limit_device01" step="0.1" placeholder="如 80" /></p>
+  <p>剖布機 (device02)：<input type="number" id="limit_device02" step="0.1" placeholder="如 80" /></p>
+  <p>車邊機 (device03)：<input type="number" id="limit_device03" step="0.1" placeholder="如 80" /></p>
+  <p>剪頭機 (device04)：<input type="number" id="limit_device04" step="0.1" placeholder="如 80" /></p>
+  <p>摺頭機 (device05)：<input type="number" id="limit_device05" step="0.1" placeholder="如 80" /></p>
+  </section>
 
   <section>
     <h2>💰 成本模式</h2>
@@ -120,7 +129,14 @@
         localStorage.setItem("midpeak_price", document.getElementById("midpeakPrice").value || "3.5");
         localStorage.setItem("summer_extra", document.getElementById("summerExtra").value || "0");
       }
-
+      
+      // 儲存每台設備的碳排上限
+      for (let i = 1; i <= 5; i++) {
+      const id = `device0${i}`;
+      const value = document.getElementById(`limit_${id}`).value || "80";
+      localStorage.setItem(`${id}_limit`, value);
+      }
+      
       alert("✅ 設定已儲存！");
     }
 
@@ -140,6 +156,11 @@
         document.getElementById("midpeakPrice").value = localStorage.getItem("midpeak_price") || "3.5";
         document.getElementById("summerExtra").value = localStorage.getItem("summer_extra") || "0";
       }
+      // 載入每台設備的碳排上限
+      for (let i = 1; i <= 5; i++) {
+      const id = `device0${i}`;
+      document.getElementById(`limit_${id}`).value = localStorage.getItem(`${id}_limit`) || "80";
+}
     }
   </script>
 </body>
