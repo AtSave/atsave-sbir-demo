@@ -163,19 +163,18 @@
     ${statusNote}
 `;
       grid.appendChild(card);
-      // 從 localStorage 讀取該設備的碳排上限（預設 80）
+     // 判斷碳排狀態（使用 localStorage 的上限）
       const limit = parseFloat(localStorage.getItem(`${d.device_id}_limit`) || "80");
 
-      // 判斷碳排狀態
       let highlightStyle = "";
       let statusNote = "";
 
       if (d.emission > limit) {
-      highlightStyle = "border: 2px solid red;";
+        highlightStyle = "border: 2px solid red;";
       statusNote = `<p style='color:red;'>⚠️ 碳排過高，已超出上限 ${limit} gCO₂</p>`;
       } else if (d.emission < 60) {
       statusNote = "<p style='color:green;'>📈 節能良好</p>";
-}
+    }
     });
     
     // 計算總筆數（假設每筆設備都是一筆資料）
@@ -265,17 +264,17 @@ function calculateCost(power, timestamp) {
   function updateNowTime() {
     document.getElementById("nowTime").innerText = new Date().toLocaleTimeString();
   }
-
-  loadData();
-  updateNowTime();
-  setInterval(loadData, 60000);
-  setInterval(updateNowTime, 1000);
-  function loadCarbonFactor() {
+    function loadCarbonFactor() {
   const factor = localStorage.getItem("carbon_factor") || "0.474";
   const updateDate = localStorage.getItem("carbon_factor_date") || "114/4/14";
   const display = `🔄 電力排碳係數：${factor} kg CO₂e/kWh（更新日期：${updateDate}）`;
   document.getElementById("carbonFactorDisplay").innerText = display;
 }
+  loadData();
+  updateNowTime();
+  setInterval(loadData, 60000);
+  setInterval(updateNowTime, 1000);
+
 loadCarbonFactor();
 </script>
 </body>
