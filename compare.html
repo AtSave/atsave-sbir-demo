@@ -121,6 +121,8 @@
     </section>
 
     <h2>📋 成效統計表</h2>
+    <!-- 🔎 顯示目前選擇的設備名稱 -->
+    <p id="compareTargetNote" style="font-weight: bold; margin-top: 1rem;"></p>
     <table>
       <thead>
         <tr>
@@ -217,6 +219,9 @@
 
   const devices = Array.from(document.querySelectorAll(".compare-device:checked"))
                      .map(input => input.value);
+  // 🔴 顯示目前選取設備名稱
+  document.getElementById("compareTargetNote").innerText =
+  "目前比較設備：" + devices.map(mapDevice).join("、");
   const api = "https://atsave-sbir-demo-production.up.railway.app/query-logs";
 
   async function fetchRange(start, end) {
@@ -264,6 +269,15 @@ function updateCompareTable(b, a) {
     <tr><td>單件平均耗電 (Wh)</td><td>${b.power}</td><td>${a.power}</td><td>${delta(b.power, a.power)}</td></tr>
     <tr><td>單件平均成本 (元)</td><td>${b.cost}</td><td>${a.cost}</td><td>${delta(b.cost, a.cost)}</td></tr>
   `;
+}
+  function mapDevice(id) {
+  return {
+    device01: "毛巾織機",
+    device02: "剖布機",
+    device03: "車邊機",
+    device04: "剪頭機",
+    device05: "摺頭機"
+  }[id] || id;
 }
 </script>
 </body>
