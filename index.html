@@ -179,7 +179,8 @@ if (data.length > 0) {
 }
     document.getElementById("total_emission").innerText = totalEmission.toFixed(1);
     document.getElementById("total_power").innerText = totalPower.toFixed(1);
-    document.getElementById("ai_tip").innerText = getAiSuggestion(totalEmission);
+    const aiList = getAiSuggestions(data);
+    document.getElementById("ai_tip").innerHTML = "<ul>" + aiList.map(item => `<li>${item}</li>`).join("") + "</ul>";
 
   function getSelectedDevices() {
   return Array.from(document.querySelectorAll(".device-filter:checked"))
@@ -217,6 +218,33 @@ drawChart(filteredLabels.map(mapDevice), filteredPowers, filteredEmissions);
     if (totalCarbon > 320) return "碳排量略高，可評估維護週期與功率設定。";
     return "目前碳排水準合理，建議維持現有節能參數。";
   }
+  
+  function getAiSuggestions(data) {
+  const suggestions = [];
+
+  // 1. 找出碳排超過上限的設備
+  data.forEach(d => {
+    const limit = parseFloat(localStorage.getItem(`${d.device_id}_limit`) || "80");
+    if (d.emission > limit) {
+      suggestions.push(`建議檢查 ${mapDevice(d.device_id)}，碳排 (${d.emission} gCO₂) 超出上限`);
+    }
+  });
+
+  // 2. 找出達成率 < 85 的設備
+  const lowPerformance = data.filter(d => d.performance < 85);
+  lowPerformance.forEach(d => {
+    suggestions.push(`📉 ${mapDevice(d.device_id)} 達成率偏低 (${d.performance}%)`);
+  });
+
+  // 3. 若碳排總值偏低，可加一句正面建議
+  const avgCarbon = data.reduce((sum, d) => sum + d.emission, 0) / data.length;
+  if (avgCarbon < 65) {
+    suggestions.push("✅ 本日節能成效佳，建議維持目前操作參數");
+  }
+
+  // 限制最多 3 條
+  return suggestions.slice(0, 3);
+}
 function calculateCost(power, timestamp) {
   const mode = localStorage.getItem("pricing_mode") || "fixed";
 
