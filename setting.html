@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>🔧 設定頁 - 電價與碳係數</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+      background: #f8f8f8;
+    }
+
+    h1 {
+      color: #0077b6;
+      margin-bottom: 1rem;
+    }
+
+    section {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 6px rgba(0,0,0,0.05);
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input {
+      padding: 6px;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 200px;
+    }
+
+    select {
+      padding: 6px;
+      margin: 0.5rem 0;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 6px 12px;
+      background: #0077b6;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>🔧 系統設定</h1>
+
+  <section>
+    <h2>🔄 電力排碳係數</h2>
+    <label for="carbonFactor">每度電碳排量 (kg CO₂e/kWh)：</label><br/>
+    <input type="number" step="0.001" id="carbonFactor" placeholder="如 0.474" /><br/>
+    <label for="carbonDate">更新日期（民國格式）：</label><br/>
+    <input type="text" id="carbonDate" placeholder="如 114/4/14" />
+  </section>
+
+  <section>
+    <h2>💰 成本模式</h2>
+    <label for="modeSelect">選擇計價方式：</label>
+    <select id="pricingMode" onchange="toggleCostFields()">
+      <option value="fixed">固定電價</option>
+      <option value="time">時間電價（尖離峰）</option>
+    </select>
+
+    <div id="fixedBlock">
+      <p>固定電價（元/度）：</p>
+      <input type="number" step="0.01" id="fixedPrice" placeholder="如 3.5" />
+    </div>
+
+    <div id="timeBlock" class="hidden">
+      <p>請設定各時段電價（元/度）：</p>
+      尖峰：<input type="number" step="0.01" id="peakPrice" /><br/>
+      離峰：<input type="number" step="0.01" id="offpeakPrice" /><br/>
+      半尖峰：<input type="number" step="0.01" id="midpeakPrice" /><br/>
+      夏月加價（可選）：<input type="number" step="0.01" id="summerExtra" />
+    </div>
+  </section>
+
+  <button onclick="saveSettings()">💾 儲存設定</button>
+
+  <script>
+    function toggleCostFields() {
+      const mode = document.getElementById("pricingMode").value;
+      document.getElementById("fixedBlock").classList.toggle("hidden", mode !== "fixed");
+      document.getElementById("timeBlock").classList.toggle("hidden", mode !== "time");
+    }
+
+    function saveSettings() {
+      // 碳排係數
+      localStorage.setItem("carbon_factor", document.getElementById("carbonFactor").value || "0.474");
+      localStorage.setItem("carbon_factor_date", document.getElementById("carbonDate").value || "114/4/14");
+
+      // 成本模式
+      const mode = document.getElementById("pricingMode").value;
+      localStorage.setItem("pricing_mode", mode);
+
+      if (mode === "fixed") {
+        localStorage.setItem("fixed_price", document.getElementById("fixedPrice").value || "3.5");
+      } else {
+        localStorage.setItem("peak_price", document.getElementById("peakPrice").value || "5");
+        localStorage.setItem("offpeak_price", document.getElementById("offpeakPrice").value || "2");
+        localStorage.setItem("midpeak_price", document.getElementById("midpeakPrice").value || "3.5");
+        localStorage.setItem("summer_extra", document.getElementById("summerExtra").value || "0");
+      }
+
+      alert("✅ 設定已儲存！");
+    }
+
+    // 預設載入
+    window.onload = () => {
+      document.getElementById("carbonFactor").value = localStorage.getItem("carbon_factor") || "0.474";
+      document.getElementById("carbonDate").value = localStorage.getItem("carbon_factor_date") || "114/4/14";
+      const mode = localStorage.getItem("pricing_mode") || "fixed";
+      document.getElementById("pricingMode").value = mode;
+      toggleCostFields();
+
+      if (mode === "fixed") {
+        document.getElementById("fixedPrice").value = localStorage.getItem("fixed_price") || "3.5";
+      } else {
+        document.getElementById("peakPrice").value = localStorage.getItem("peak_price") || "5";
+        document.getElementById("offpeakPrice").value = localStorage.getItem("offpeak_price") || "2";
+        document.getElementById("midpeakPrice").value = localStorage.getItem("midpeak_price") || "3.5";
+        document.getElementById("summerExtra").value = localStorage.getItem("summer_extra") || "0";
+      }
+    }
+  </script>
+</body>
+</html>
