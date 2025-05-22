@@ -127,3 +127,30 @@ footer {
   color: #888;
   margin-top: 2rem;
 }
+/* ✅ 設定頁專用樣式 */
+section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 6px rgba(0,0,0,0.05);
+}
+
+section h2 {
+  margin-top: 0;
+  color: #0077b6;
+}
+
+input[type="number"], input[type="text"], select {
+  padding: 6px;
+  margin: 0.5rem 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 200px;
+  font-size: 1rem;
+}
+
+.hidden {
+  display: none;
+}
+
