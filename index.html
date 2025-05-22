@@ -126,33 +126,29 @@
     const now = new Date();
 
     data.forEach(d => {
-      const lastUpdate = new Date(d.timestamp);
-      const diffMins = Math.floor((now - lastUpdate) / 60000);
-      const isOnline = diffMins < 1;
-      const statusHTML = isOnline
-        ? '<span style="color:green;">🟢 上線</span>'
-        : `<span style="color:red;">🔴 離線（${diffMins} 分鐘前）</span>`;
+  const lastUpdate = new Date(d.timestamp);
+  const diffMins = Math.floor((now - lastUpdate) / 60000);
+  const isOnline = diffMins < 1;
+  const statusHTML = isOnline
+    ? '<span style="color:green;">🟢 上線</span>'
+    : `<span style="color:red;">🔴 離線（${diffMins} 分鐘前）</span>`;
 
-      totalEmission += d.emission;
-      totalPower += d.power;
-      labels.push(d.device_id);
-      powers.push(d.power);
-      emissions.push(d.emission);
+  const limit = parseFloat(localStorage.getItem(`${d.device_id}_limit`) || "80");
 
-      let highlightStyle = "";
-      let statusNote = "";
+  let highlightStyle = "";
+  let statusNote = "";
 
-      if (d.emission > 80) {
-      highlightStyle = "border: 2px solid red;";
-      statusNote = "<p style='color:red;'>⚠️ 碳排過高，請檢查參數</p>";
-      } else if (d.emission < 60) {
-      statusNote = "<p style='color:green;'>📈 節能良好</p>";
-      }
+  if (d.emission > limit) {
+    highlightStyle = "border: 2px solid red;";
+    statusNote = `<p style='color:red;'>⚠️ 碳排過高，已超出上限 ${limit} gCO₂</p>`;
+  } else if (d.emission < 60) {
+    statusNote = "<p style='color:green;'>📈 節能良好</p>";
+  }
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.setAttribute("style", highlightStyle);
-    card.innerHTML = `
+  const card = document.createElement("div");
+  card.className = "card";
+  card.setAttribute("style", highlightStyle);
+  card.innerHTML = `
     <h3>🛠 ${mapDevice(d.device_id)} ${statusHTML}</h3>
     <p><span class="label">最後更新：</span>${lastUpdate.toLocaleTimeString()}</p>
     <p><span class="label">可用率：</span>${d.availability}%</p>
@@ -161,21 +157,9 @@
     <p><span class="label">單件耗電：</span>${d.power} Wh</p>
     <p><span class="label">單件碳排：</span>${d.emission} gCO₂</p>
     ${statusNote}
-`;
-      grid.appendChild(card);
-     // 判斷碳排狀態（使用 localStorage 的上限）
-      const limit = parseFloat(localStorage.getItem(`${d.device_id}_limit`) || "80");
-
-      let highlightStyle = "";
-      let statusNote = "";
-
-      if (d.emission > limit) {
-        highlightStyle = "border: 2px solid red;";
-      statusNote = `<p style='color:red;'>⚠️ 碳排過高，已超出上限 ${limit} gCO₂</p>`;
-      } else if (d.emission < 60) {
-      statusNote = "<p style='color:green;'>📈 節能良好</p>";
-    }
-    });
+  `;
+  grid.appendChild(card);
+});
     
     // 計算總筆數（假設每筆設備都是一筆資料）
 document.getElementById("record_count").innerText = data.length;
