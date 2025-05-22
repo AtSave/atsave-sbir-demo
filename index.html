@@ -104,6 +104,14 @@
     <!-- 📈 圖表 -->
     <section>
       <h2>📈 能耗與碳排比較圖</h2>
+      <!-- ✅ 設備篩選器 -->
+  <div style="margin-bottom: 1rem;">
+  <label><input type="checkbox" class="device-filter" value="device01" checked> 毛巾織機</label>
+  <label><input type="checkbox" class="device-filter" value="device02" checked> 剖布機</label>
+  <label><input type="checkbox" class="device-filter" value="device03" checked> 車邊機</label>
+  <label><input type="checkbox" class="device-filter" value="device04" checked> 剪頭機</label>
+  <label><input type="checkbox" class="device-filter" value="device05" checked> 摺頭機</label>
+  </div>
       <canvas id="barChart"></canvas>
     </section>
     <!-- 🔻 Powered by 區塊 -->
@@ -173,9 +181,27 @@ if (data.length > 0) {
     document.getElementById("total_power").innerText = totalPower.toFixed(1);
     document.getElementById("ai_tip").innerText = getAiSuggestion(totalEmission);
 
-    drawChart(labels.map(mapDevice), powers, emissions);
-  }
+  function getSelectedDevices() {
+  return Array.from(document.querySelectorAll(".device-filter:checked"))
+              .map(input => input.value);
+}
+    
+    // 🔴 根據使用者勾選的設備過濾要顯示的圖表資料
+const selected = getSelectedDevices();
+const filteredLabels = [], filteredPowers = [], filteredEmissions = [];
 
+data.forEach(d => {
+  if (selected.includes(d.device_id)) {
+    filteredLabels.push(d.device_id);
+    filteredPowers.push(d.power);
+    filteredEmissions.push(d.emission);
+  }
+});
+
+drawChart(filteredLabels.map(mapDevice), filteredPowers, filteredEmissions);
+    
+  }
+  
   function mapDevice(id) {
     return {
       device01: "毛巾織機",
@@ -259,7 +285,11 @@ function calculateCost(power, timestamp) {
   setInterval(loadData, 60000);
   setInterval(updateNowTime, 1000);
 
-loadCarbonFactor();
+  loadCarbonFactor();
+  // 🔴 每次勾選設備變化後，自動更新圖表資料
+document.querySelectorAll(".device-filter").forEach(cb => {
+  cb.addEventListener("change", loadData);
+});
 </script>
 </body>
 </html>
