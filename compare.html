@@ -109,6 +109,14 @@
     ~
     <input type="date" id="after_end" value="2025-05-20">
     </div>
+      <!-- 🔴 [新增] 多設備選擇器 -->
+    <div style="margin-bottom: 1rem;">
+    <label><input type="checkbox" class="compare-device" value="device01" checked> 毛巾織機</label>
+    <label><input type="checkbox" class="compare-device" value="device02" checked> 剖布機</label>
+    <label><input type="checkbox" class="compare-device" value="device03" checked> 車邊機</label>
+    <label><input type="checkbox" class="compare-device" value="device04" checked> 剪頭機</label>
+    <label><input type="checkbox" class="compare-device" value="device05" checked> 摺頭機</label>
+    </div>
     <button onclick="fetchCompare()">🔄 重新比較</button>
     </section>
 
@@ -207,7 +215,8 @@
   const afterStart = document.getElementById("after_start").value;
   const afterEnd = document.getElementById("after_end").value;
 
-  const devices = ["device01", "device02", "device03", "device04", "device05"];
+  const devices = Array.from(document.querySelectorAll(".compare-device:checked"))
+                     .map(input => input.value);
   const api = "https://atsave-sbir-demo-production.up.railway.app/query-logs";
 
   async function fetchRange(start, end) {
