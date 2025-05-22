@@ -128,6 +128,23 @@ footer {
   color: #888;
   margin-top: 2rem;
 }
+/* ✅ 設備篩選器樣式（供能耗與碳排圖表上方使用） */
+.device-filter {
+  margin-right: 6px;
+  transform: scale(1.2);
+}
+
+.device-filter + label {
+  margin-right: 1rem;
+  font-size: 0.95rem;
+}
+
+.device-filter-container {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
 /* ✅ 設定頁專用樣式 */
 section {
   background: white;
