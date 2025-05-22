@@ -172,7 +172,30 @@
     if (totalCarbon > 320) return "碳排量略高，可評估維護週期與功率設定。";
     return "目前碳排水準合理，建議維持現有節能參數。";
   }
+function calculateCost(power, timestamp) {
+  const mode = localStorage.getItem("pricing_mode") || "fixed";
 
+  if (mode === "fixed") {
+    const fixedPrice = parseFloat(localStorage.getItem("fixed_price") || "3.5");
+    return (power / 1000) * fixedPrice;
+  } else {
+    // 時間電價模式
+    const hour = new Date(timestamp).getHours();
+    const peak = parseFloat(localStorage.getItem("peak_price") || "5");
+    const offpeak = parseFloat(localStorage.getItem("offpeak_price") || "2");
+    const midpeak = parseFloat(localStorage.getItem("midpeak_price") || "3.5");
+    const summerExtra = parseFloat(localStorage.getItem("summer_extra") || "0");
+
+    let rate = offpeak;
+    if (hour >= 10 && hour < 17) {
+      rate = peak;
+    } else if (hour >= 8 && hour < 10 || hour >= 17 && hour < 20) {
+      rate = midpeak;
+    }
+
+    return (power / 1000) * (rate + summerExtra);
+  }
+}
   function drawChart(labels, powers, emissions) {
     const ctx = document.getElementById("barChart").getContext("2d");
     if (window.barInstance) window.barInstance.destroy();
