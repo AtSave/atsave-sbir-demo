@@ -266,19 +266,26 @@
 }
 
 function updateCompareTable(b, a) {
-  const delta = (v1, v2) => {
-    const diff = (v1 - v2) / v1 * 100;
-    const icon = diff > 0 ? "⬇" : "⬆";
-    return `<span style="color:green;">${icon} ${Math.abs(diff).toFixed(1)}%</span>`;
-  };
+ 
+  // 🔴 [替換原本 delta 函數]：依欄位內容判斷是否加 ✅
+function delta(v1, v2, isPositiveBetter = true) {
+  const v1Num = parseFloat(v1);
+  const v2Num = parseFloat(v2);
+  const change = ((v2Num - v1Num) / v1Num) * 100;
+  const arrow = change > 0 ? "⬆" : "⬇";
+  const good = (isPositiveBetter && change > 0) || (!isPositiveBetter && change < 0);
+  const symbol = good ? "✅" : "";
+  return `<span style="color:green;">${arrow} ${Math.abs(change).toFixed(1)}% ${symbol}</span>`;
+}
 
-  document.querySelector("tbody").innerHTML = `
-    <tr><td>平均碳排量 (gCO₂)</td><td>${b.emission}</td><td>${a.emission}</td><td>${delta(b.emission, a.emission)}</td></tr>
-    <tr><td>平均良率 (%)</td><td>${b.quality}%</td><td>${a.quality}%</td><td>${delta(b.quality, a.quality)}</td></tr>
-    <tr><td>平均達成率 (%)</td><td>${b.performance}%</td><td>${a.performance}%</td><td>${delta(b.performance, a.performance)}</td></tr>
-    <tr><td>單件平均耗電 (Wh)</td><td>${b.power}</td><td>${a.power}</td><td>${delta(b.power, a.power)}</td></tr>
-    <tr><td>單件平均成本 (元)</td><td>${b.cost}</td><td>${a.cost}</td><td>${delta(b.cost, a.cost)}</td></tr>
-  `;
+
+document.querySelector("tbody").innerHTML = `
+  <tr><td>平均碳排量 (gCO₂)</td><td>${b.emission}</td><td>${a.emission}</td><td>${delta(b.emission, a.emission, false)}</td></tr>
+  <tr><td>平均良率 (%)</td><td>${b.quality}%</td><td>${a.quality}%</td><td>${delta(b.quality, a.quality, true)}</td></tr>
+  <tr><td>平均達成率 (%)</td><td>${b.performance}%</td><td>${a.performance}%</td><td>${delta(b.performance, a.performance, true)}</td></tr>
+  <tr><td>單件平均耗電 (Wh)</td><td>${b.power}</td><td>${a.power}</td><td>${delta(b.power, a.power, false)}</td></tr>
+  <tr><td>單件平均成本 (元)</td><td>${b.cost}</td><td>${a.cost}</td><td>${delta(b.cost, a.cost, false)}</td></tr>
+`;
 }
   function mapDevice(id) {
   return {
