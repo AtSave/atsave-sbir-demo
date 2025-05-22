@@ -149,18 +149,18 @@
       statusNote = "<p style='color:green;'>📈 節能良好</p>";
       }
 
-      const card = document.createElement("div");
+    const card = document.createElement("div");
     card.className = "card";
     card.setAttribute("style", highlightStyle);
     card.innerHTML = `
-        <h3>🛠 ${mapDevice(d.device_id)} ${statusHTML}</h3>
-        <p><span class="label">最後更新：</span>${lastUpdate.toLocaleTimeString()}</p>
-        <p><span class="label">可用率：</span>${d.availability}%</p>
-        <p><span class="label">良率：</span>${d.quality}%</p>
-        <p><span class="label">達成率：</span>${d.performance}%</p>
-        <p><span class="label">單件耗電：</span>${d.power} Wh</p>
-        <p><span class="label">單件碳排：</span>${d.emission} gCO₂</p>
-        ${statusNote}
+    <h3>🛠 ${mapDevice(d.device_id)} ${statusHTML}</h3>
+    <p><span class="label">最後更新：</span>${lastUpdate.toLocaleTimeString()}</p>
+    <p><span class="label">可用率：</span>${d.availability}%</p>
+    <p><span class="label">良率：</span>${d.quality}%</p>
+    <p><span class="label">達成率：</span>${d.performance}%</p>
+    <p><span class="label">單件耗電：</span>${d.power} Wh</p>
+    <p><span class="label">單件碳排：</span>${d.emission} gCO₂</p>
+    ${statusNote}
 `;
       grid.appendChild(card);
       // 從 localStorage 讀取該設備的碳排上限（預設 80）
