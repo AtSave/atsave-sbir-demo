@@ -139,17 +139,28 @@
       powers.push(d.power);
       emissions.push(d.emission);
 
+      let highlightStyle = "";
+      let statusNote = "";
+
+      if (d.emission > 80) {
+      highlightStyle = "border: 2px solid red;";
+      statusNote = "<p style='color:red;'>⚠️ 碳排過高，請檢查參數</p>";
+      } else if (d.emission < 60) {
+      statusNote = "<p style='color:green;'>📈 節能良好</p>";
+      }
+
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
-        <h3>🛠 ${mapDevice(d.device_id)} ${statusHTML}</h3>
-        <p><span class="label">最後更新：</span>${lastUpdate.toLocaleTimeString()}</p>
-        <p><span class="label">稼動率：</span>${d.availability}%</p>
-        <p><span class="label">良率：</span>${d.quality}%</p>
-        <p><span class="label">達成率：</span>${d.performance}%</p>
-        <p><span class="label">單件耗電：</span>${d.power} Wh</p>
-        <p><span class="label">單件碳排：</span>${d.emission} gCO₂</p>
-      `;
+          <h3>🛠 ${mapDevice(d.device_id)} ${statusHTML}</h3>
+          <p><span class="label">最後更新：</span>${lastUpdate.toLocaleTimeString()}</p>
+          <p><span class="label">可用率：</span>${d.availability}%</p>
+          <p><span class="label">良率：</span>${d.quality}%</p>
+          <p><span class="label">達成率：</span>${d.performance}%</p>
+          <p><span class="label">單件耗電：</span>${d.power} Wh</p>
+          <p><span class="label">單件碳排：</span>${d.emission} gCO₂</p>
+          ${statusNote}
+        `;
       grid.appendChild(card);
     });
     
