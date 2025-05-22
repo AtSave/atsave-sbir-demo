@@ -8,10 +8,11 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <!-- 🔄 電力排碳係數浮動角 -->
-  <div style="position:fixed; top:10px; right:20px; font-size:0.85rem; background:#eef; padding:6px 12px; border-radius:6px;">
-    🔄 電力排碳係數：0.474 kg CO₂e/kWh（更新日期：114/4/14）
-  </div>
+<!-- 🔄 電力排碳係數顯示區塊 -->
+<div id="carbonFactorDisplay"
+     style="position: fixed; top: 10px; right: 20px; font-size: 0.85rem; background: #eef; padding: 6px 12px; border-radius: 6px;">
+  🔄 電力排碳係數：-- kg CO₂e/kWh（未設定）
+</div>
 
   <div class="container">
   <!-- 🔷 安特省 LOGO -->
@@ -30,12 +31,22 @@
     </div>
 
     <!-- 📊 總統計 -->
-    <section>
-      <h2>📊 今日碳排與能耗統計</h2>
-      <p><span class="label">總碳排量：</span><span id="total_emission">--</span> gCO₂</p>
-      <p><span class="label">總能耗：</span><span id="total_power">--</span> Wh</p>
-      <p><span class="label">AI 建議：</span><span id="ai_tip">--</span></p>
-    </section>
+<section>
+  <h2>📊 今日碳排與能耗統計</h2>
+  <p><span class="label">總碳排量（每日）：</span><span id="total_emission">--</span> gCO₂</p>
+  <p><span class="label">總能耗（每日）：</span><span id="total_power">--</span> Wh</p>
+
+  <p><span class="label">每件產品總能耗量（群組累加）：</span>
+    <span id="summary_energy">--</span> Wh → 模擬值：<span id="sim_energy">--</span> Wh</p>
+
+  <p><span class="label">每件產品總碳排量（群組累加）：</span>
+    <span id="summary_emission">--</span> gCO₂ → 模擬值：<span id="sim_emission">--</span> gCO₂</p>
+
+  <p><span class="label">每件產品總成本（群組累加）：</span>
+    <span id="summary_cost">--</span> 元 → 模擬值：<span id="sim_cost">--</span> 元</p>
+
+  <p><span class="label">AI 建議：</span><span id="ai_tip">--</span></p>
+</section>
 <!-- 📉 改善前 vs 改善後 對比區塊 -->
 <section>
   <h2>📉 改善前後數據對比</h2>
@@ -199,6 +210,13 @@
   updateNowTime();
   setInterval(loadData, 60000);
   setInterval(updateNowTime, 1000);
+  function loadCarbonFactor() {
+  const factor = localStorage.getItem("carbon_factor") || "0.474";
+  const updateDate = localStorage.getItem("carbon_factor_date") || "114/4/14";
+  const display = `🔄 電力排碳係數：${factor} kg CO₂e/kWh（更新日期：${updateDate}）`;
+  document.getElementById("carbonFactorDisplay").innerText = display;
+}
+loadCarbonFactor();
 </script>
 </body>
 </html>
