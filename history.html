@@ -43,11 +43,21 @@
       <label for="end">結束日期：</label>
       <input type="date" id="end" value="2025-05-10">
       <button onclick="fetchLogs()">查詢</button>
+      <!-- 🔴 新增快速日期選擇器 -->
+      <div style="margin: 1rem 0;">
+      <button onclick="setQuickDate(3)">📆 最近三天</button>
+      <button onclick="setQuickDate(7)">📆 最近七天</button>
+      </div>
     </section>
 
     <!-- 🔹 表格顯示區 -->
     <section>
       <h2>📋 數據紀錄表</h2>
+      <!-- 🔴 匯出報表按鈕 -->
+    <div style="text-align:right; margin-bottom: 1rem;">
+    <button onclick="exportCSV()">⬇ 匯出 CSV</button>
+    <button onclick="window.print()">🖨️ 列印 ESG 報表（PDF）</button>
+    </div>
       <table id="logTable">
         <thead>
           <tr>
@@ -104,6 +114,19 @@ async function fetchLogs() {
 
   drawChart(timeLabels, powers, emissions);
 }
+  function exportCSV() {
+  let csv = "時間,可用率,良率,達成率,耗電(Wh),碳排(gCO₂)\\n";
+  document.querySelectorAll("#logTable tbody tr").forEach(row => {
+    const values = Array.from(row.querySelectorAll("td")).map(td => td.innerText);
+    csv += values.join(",") + "\\n";
+  });
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "ESG_History_Report.csv";
+  a.click();
+}
 
 function formatTime(timestamp, short=false) {
   const d = new Date(timestamp);
@@ -138,12 +161,26 @@ function drawChart(labels, powers, emissions) {
       ]
     },
     options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      }
+  responsive: true,
+  scales: {
+    y: { beginAtZero: true }
+  },
+  plugins: {
+    tooltip: {
+      mode: "index",
+      intersect: false
     }
+  }
+}
   });
+}
+  function setQuickDate(days) {
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(today.getDate() - days + 1); // 包含今天
+
+  document.getElementById("start").value = start.toISOString().split("T")[0];
+  document.getElementById("end").value = today.toISOString().split("T")[0];
 }
 </script>
 </body>
