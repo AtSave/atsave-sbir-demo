@@ -44,7 +44,7 @@
 <section>
   <h2>📊 今日碳排與能耗統計</h2>
   <p><span class="label">今日資料筆數：</span><span id="record_count">--</span> 筆</p>
-  <p><span class="label">最後更新時間：</span><span id="last_update">--:--:--</span></p>
+  <p><span class="label">最後更新：</span>${lastUpdate.toLocaleString("zh-TW", { hour12: true })}</p>
   <p><span class="label">總碳排量（每日）：</span><span id="total_emission">--</span> gCO₂</p>
   <p><span class="label">總能耗（每日）：</span><span id="total_power">--</span> Wh</p>
 
@@ -183,7 +183,7 @@ document.getElementById("record_count").innerText = data.length;
 // 取得最後一筆資料的 timestamp
 if (data.length > 0) {
   const latest = new Date(Math.max(...data.map(d => new Date(d.timestamp))));
-  document.getElementById("last_update").innerText = latest.toLocaleTimeString();
+  document.getElementById("last_update").innerText = latest.toLocaleString("zh-TW", { hour12: true });
 }
     document.getElementById("total_emission").innerText = totalEmission.toFixed(1);
     document.getElementById("total_power").innerText = totalPower.toFixed(1);
