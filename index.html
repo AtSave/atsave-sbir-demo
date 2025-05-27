@@ -310,6 +310,15 @@ function calculateCost(power, timestamp) {
   function updateNowTime() {
     document.getElementById("nowTime").innerText = new Date().toLocaleTimeString();
   }
+    async function fetchSummaryToday() {
+  const today = new Date().toISOString().split("T")[0];  // e.g., "2025-05-27"
+  const res = await fetch(`${apiBase}/summary-by-date?date=${today}`);
+  const data = await res.json();
+
+  document.getElementById("record_count").textContent = data.data_count || 0;
+  document.getElementById("total_emission").textContent = data.total_emission || 0;
+  document.getElementById("total_power").textContent = data.total_energy || 0;
+}
     function loadCarbonFactor() {
   const factor = localStorage.getItem("carbon_factor") || "0.474";
   const updateDate = localStorage.getItem("carbon_factor_date") || "114/4/14";
@@ -318,6 +327,7 @@ function calculateCost(power, timestamp) {
 }
   loadData();
   updateNowTime();
+  fetchSummaryToday(); 
   setInterval(loadData, 60000);
   setInterval(updateNowTime, 1000);
 
