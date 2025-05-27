@@ -40,28 +40,34 @@ def query_logs():
 
 @app.route("/summary-by-date", methods=["GET"])
 def summary_by_date():
-    date = request.args.get("date")  # 格式：2025-05-27
+    date = request.args.get("date")  # format: 2025-05-27
     start = f"{date}T00:00:00Z"
     end = f"{date}T23:59:59Z"
 
-    url = f"{SUPABASE_URL}/rest/v1/device_logs?timestamp=gte.{start}&timestamp=lte.{end}&select=device_id,energy_wh,co2_emission"
+    url = f"{SUPABASE_URL}/rest/v1/device_logs?timestamp=gte.{start}&timestamp=lte.{end}"
     r = requests.get(url, headers=headers)
-
     if not r.ok:
         return jsonify({"error": "Failed to fetch data"}), 400
 
     data = r.json()
+
+    # 統計總能耗與碳排
     total_energy = sum([d.get("energy_wh", 0) for d in data])
     total_emission = sum([d.get("co2_emission", 0) for d in data])
-    total_count = len(data)
+
+    # 統計每個設備的筆數
+    device_counts = {}
+    for d in data:
+        device_id = d.get("device_id", "unknown")
+        device_counts[device_id] = device_counts.get(device_id, 0) + 1
 
     return jsonify({
         "date": date,
         "data_count": len(data),
         "total_energy": round(total_energy, 2),
-        "total_emission": round(total_emission, 2)
+        "total_emission": round(total_emission, 2),
+        "device_counts": device_counts
     })
-
 
 @app.route("/")
 def home():
