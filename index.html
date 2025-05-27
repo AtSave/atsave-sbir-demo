@@ -179,7 +179,7 @@
 });
     
     // 計算總筆數（假設每筆設備都是一筆資料）
-document.getElementById("record_count").innerText = data.length;
+document.getElementById("record_count").textContent = data.data_count || 0;
 
 // 取得最後一筆資料的 timestamp
 if (data.length > 0) {
