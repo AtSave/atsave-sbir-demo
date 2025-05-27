@@ -40,18 +40,28 @@ def query_logs():
 
 @app.route("/summary-by-date", methods=["GET"])
 def summary_by_date():
-    date = request.args.get("date")  # format: 2025-05-05
+    date = request.args.get("date")  # 格式：2025-05-27
     start = f"{date}T00:00:00Z"
     end = f"{date}T23:59:59Z"
-    url = f"{SUPABASE_URL}/rest/v1/device_logs?timestamp=gte.{start}&timestamp=lte.{end}"
+
+    url = f"{SUPABASE_URL}/rest/v1/device_logs?timestamp=gte.{start}&timestamp=lte.{end}&select=device_id,energy_wh,co2_emission"
     r = requests.get(url, headers=headers)
+
     if not r.ok:
         return jsonify({"error": "Failed to fetch data"}), 400
 
     data = r.json()
-    total_energy = sum([d["power"] for d in data])
-    total_emission = sum([d["emission"] for d in data])
-    return jsonify({"date": date, "total_energy": total_energy, "total_emission": total_emission})
+    total_energy = sum([d.get("energy_wh", 0) for d in data])
+    total_emission = sum([d.get("co2_emission", 0) for d in data])
+    total_count = len(data)
+
+    return jsonify({
+        "date": date,
+        "data_count": total_count,
+        "total_energy": round(total_energy, 2),
+        "total_emission": round(total_emission, 2)
+    })
+
 
 @app.route("/")
 def home():
