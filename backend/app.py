@@ -57,7 +57,7 @@ def summary_by_date():
 
     return jsonify({
         "date": date,
-        "data_count": total_count,
+        "data_count": len(data),
         "total_energy": round(total_energy, 2),
         "total_emission": round(total_emission, 2)
     })
