@@ -209,7 +209,7 @@ data.forEach(d => {
     filteredEmissions.push(d.emission);
   }
 });
-
+console.log("圖表資料", filteredLabels, filteredPowers, filteredEmissions);
 drawChart(filteredLabels.map(mapDevice), filteredPowers, filteredEmissions);
     
   }
@@ -281,8 +281,18 @@ function calculateCost(power, timestamp) {
   }
 }
   function drawChart(labels, powers, emissions) {
-    const ctx = document.getElementById("barChart").getContext("2d");
-    if (window.barInstance) window.barInstance.destroy();
+  try {
+    const canvas = document.getElementById("barChart");
+
+    // 🧼 重建 canvas 避免 Chart.js 堆疊錯誤
+    const parent = canvas.parentElement;
+    canvas.remove();
+
+    const newCanvas = document.createElement("canvas");
+    newCanvas.id = "barChart";
+    parent.appendChild(newCanvas);
+
+    const ctx = newCanvas.getContext("2d");
 
     window.barInstance = new Chart(ctx, {
       type: "bar",
@@ -308,7 +318,10 @@ function calculateCost(power, timestamp) {
         }
       }
     });
+  } catch (e) {
+    console.error("⚠️ Chart.js 畫圖錯誤：", e);
   }
+}
 
   function updateNowTime() {
     document.getElementById("nowTime").innerText = new Date().toLocaleTimeString();
