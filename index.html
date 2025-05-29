@@ -44,9 +44,7 @@
 <section>
   <h2>📊 今日碳排與能耗統計</h2>
   <p><span class="label">今日資料筆數：</span><span id="record_count">--</span> 筆</p>
-  <p><span class="label">最後更新（UTC）：</span>${d.timestamp}</p>
-    <p><strong>各設備今日資料筆數：</strong></p>
-  <ul id="device_log_count_list" style="margin-left: 1rem;"></ul>
+  <p><span class="label">最後更新時間：</span><span id="last_update">--:--:--</span></p>
   <p><span class="label">總碳排量（每日）：</span><span id="total_emission">--</span> gCO₂</p>
   <p><span class="label">總能耗（每日）：</span><span id="total_power">--</span> Wh</p>
 
@@ -168,8 +166,7 @@
   card.setAttribute("style", highlightStyle);
   card.innerHTML = `
     <h3>🛠 ${mapDevice(d.device_id)} ${statusHTML}</h3>
-    <p><span class="label">最後更新：</span><br/>
-    📦 原始資料：${d.timestamp}<br/>
+    <p><span class="label">最後更新：</span>${lastUpdate.toLocaleTimeString()}</p>
     <p><span class="label">可用率：</span>${d.availability}%</p>
     <p><span class="label">良率：</span>${d.quality}%</p>
     <p><span class="label">達成率：</span>${d.performance}%</p>
@@ -181,12 +178,12 @@
 });
     
     // 計算總筆數（假設每筆設備都是一筆資料）
-document.getElementById("record_count").textContent = data.data_count || 0;
+document.getElementById("record_count").innerText = data.length;
 
 // 取得最後一筆資料的 timestamp
 if (data.length > 0) {
   const latest = new Date(Math.max(...data.map(d => new Date(d.timestamp))));
-  document.getElementById("last_update").innerText = latest.toLocaleString("zh-TW", { hour12: true });
+  document.getElementById("last_update").innerText = latest.toLocaleTimeString();
 }
     document.getElementById("total_emission").innerText = totalEmission.toFixed(1);
     document.getElementById("total_power").innerText = totalPower.toFixed(1);
@@ -209,7 +206,7 @@ data.forEach(d => {
     filteredEmissions.push(d.emission);
   }
 });
-console.log("圖表資料", filteredLabels, filteredPowers, filteredEmissions);
+
 drawChart(filteredLabels.map(mapDevice), filteredPowers, filteredEmissions);
     
   }
@@ -281,18 +278,8 @@ function calculateCost(power, timestamp) {
   }
 }
   function drawChart(labels, powers, emissions) {
-  try {
-    const canvas = document.getElementById("barChart");
-
-    // 🧼 重建 canvas 避免 Chart.js 堆疊錯誤
-    const parent = canvas.parentElement;
-    canvas.remove();
-
-    const newCanvas = document.createElement("canvas");
-    newCanvas.id = "barChart";
-    parent.appendChild(newCanvas);
-
-    const ctx = newCanvas.getContext("2d");
+    const ctx = document.getElementById("barChart").getContext("2d");
+    if (window.barInstance) window.barInstance.destroy();
 
     window.barInstance = new Chart(ctx, {
       type: "bar",
@@ -318,34 +305,11 @@ function calculateCost(power, timestamp) {
         }
       }
     });
-  } catch (e) {
-    console.error("⚠️ Chart.js 畫圖錯誤：", e);
   }
-}
 
   function updateNowTime() {
     document.getElementById("nowTime").innerText = new Date().toLocaleTimeString();
   }
-    async function fetchSummaryToday() {
-  const today = new Date().toISOString().split("T")[0];
-  const res = await fetch(`${apiBase}/summary-by-date?date=${today}`);
-  const data = await res.json();
-
-  document.getElementById("record_count").textContent = data.data_count || 0;
-  document.getElementById("total_emission").textContent = data.total_emission || 0;
-  document.getElementById("total_power").textContent = data.total_energy || 0;
-
-  // 📌 加在這裡：更新各設備筆數
-  const list = document.getElementById("device_log_count_list");
-  list.innerHTML = "";
-  if (data.device_counts) {
-    for (const [deviceId, count] of Object.entries(data.device_counts)) {
-      const li = document.createElement("li");
-      li.textContent = `${deviceId}：${count} 筆`;
-      list.appendChild(li);
-    }
-  }
-}
     function loadCarbonFactor() {
   const factor = localStorage.getItem("carbon_factor") || "0.474";
   const updateDate = localStorage.getItem("carbon_factor_date") || "114/4/14";
@@ -354,7 +318,6 @@ function calculateCost(power, timestamp) {
 }
   loadData();
   updateNowTime();
-  fetchSummaryToday(); 
   setInterval(loadData, 60000);
   setInterval(updateNowTime, 1000);
 
