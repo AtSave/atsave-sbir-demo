@@ -38,46 +38,20 @@ def query_logs():
     r = requests.get(url, headers=headers)
     return jsonify(r.json())
 
-from datetime import datetime, timedelta, timezone
-
 @app.route("/summary-by-date", methods=["GET"])
 def summary_by_date():
-    date_str = request.args.get("date")  # e.g., "2025-05-27"
-    if not date_str:
-        return jsonify({"error": "Missing date"}), 400
+    date = request.args.get("date")  # format: 2025-05-05
+    start = f"{date}T00:00:00Z"
+    end = f"{date}T23:59:59Z"
+    url = f"{SUPABASE_URL}/rest/v1/device_logs?timestamp=gte.{start}&timestamp=lte.{end}"
+    r = requests.get(url, headers=headers)
+    if not r.ok:
+        return jsonify({"error": "Failed to fetch data"}), 400
 
-    try:
-        # 建立 UTC 時區的起始與結束時間
-        tz = timezone.utc
-        date_start = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=tz)
-        date_end = date_start + timedelta(days=1)
-
-        start_iso = date_start.isoformat()  # e.g., "2025-05-27T00:00:00+00:00"
-        end_iso = date_end.isoformat()      # e.g., "2025-05-28T00:00:00+00:00"
-
-        url = f"{SUPABASE_URL}/rest/v1/device_logs?timestamp=gte.{start_iso}&timestamp=lt.{end_iso}"
-        r = requests.get(url, headers=headers)
-        if not r.ok:
-            return jsonify({"error": "Failed to fetch data"}), 400
-
-        data = r.json()
-        total_energy = sum([d.get("energy_wh", 0) for d in data])
-        total_emission = sum([d.get("co2_emission", 0) for d in data])
-
-        device_counts = {}
-        for d in data:
-            device_id = d.get("device_id", "unknown")
-            device_counts[device_id] = device_counts.get(device_id, 0) + 1
-
-        return jsonify({
-            "date": date_str,
-            "data_count": len(data),
-            "total_energy": round(total_energy, 2),
-            "total_emission": round(total_emission, 2),
-            "device_counts": device_counts
-        })
-    except Exception as e:
-        return jsonify({"error": f"解析失敗: {str(e)}"}), 500
+    data = r.json()
+    total_energy = sum([d["power"] for d in data])
+    total_emission = sum([d["emission"] for d in data])
+    return jsonify({"date": date, "total_energy": total_energy, "total_emission": total_emission})
 
 @app.route("/")
 def home():
