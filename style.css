@@ -205,4 +205,8 @@ header p {
   color: #555;
 }
 
-
+header {
+  max-width: 1200px;
+  margin: auto;
+  padding: 1rem 2rem;
+}
